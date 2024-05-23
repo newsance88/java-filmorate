@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -15,15 +15,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class FilmControllerTest {
-
+    @Autowired
     private FilmController filmController;
+    @Autowired
     private FilmManager filmManager;
 
-    @BeforeEach
-    void beforeEach() {
-        filmManager = new FilmManager();
-        filmController = new FilmController();
-    }
+//    @BeforeEach
+//    void beforeEach() {
+//        filmManager = new FilmManager();
+//        filmController = new FilmController();
+//    }
 
     @Test
     void createFilmTest() {

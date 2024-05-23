@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.manager.FilmManager;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -11,7 +12,8 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    FilmManager filmManager = new FilmManager();
+    @Autowired
+    private FilmManager filmManager;
 
     @GetMapping
     public Collection<Film> getFilms() {
@@ -20,13 +22,11 @@ public class FilmController {
 
     @PostMapping
     public Film createFilm(@RequestBody Film film) {
-        filmManager.addFilm(film);
-        return film;
+        return filmManager.addFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@RequestBody Film newFilm) {
-        filmManager.filmUpdate(newFilm);
-        return newFilm;
+        return filmManager.filmUpdate(newFilm);
     }
 }
