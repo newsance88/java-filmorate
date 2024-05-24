@@ -46,11 +46,21 @@ public class FilmManager {
     }
 
     private boolean validate(Film film) {
-        return film.getName() != null && film.getReleaseDate() != null &&
-                film.getDescription() != null && !film.getName().isEmpty() &&
-                !(film.getDescription().length() > 200) && !film.getReleaseDate().isBefore(MIN_RELEASE) &&
-                film.getDuration() > 0;
+        if (film.getName() == null || film.getName().isEmpty()) {
+            throw new ValidationException("Название не должно быть пустым");
+        }
+        if (film.getDescription() == null || film.getDescription().length() > 200) {
+            throw new ValidationException("Описание не должно превышать 200 символов");
+        }
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(MIN_RELEASE)) {
+            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
+        }
+        if (film.getDuration() <= 0) {
+            throw new ValidationException("Продолжительность должна быть положительной");
+        }
+        return true;
     }
+
 
     private int getLastId() {
         return films.keySet().stream()

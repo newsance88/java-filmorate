@@ -17,7 +17,7 @@ public class UserManager {
     private Map<Integer, User> users = new HashMap<>();
 
     public User addUser(User user) {
-        if (!vaidate(user)) {
+        if (!validate(user)) {
             log.info("Неверный формат пользователя");
             throw new ValidationException("Неверный формат пользователя");
         }
@@ -33,7 +33,7 @@ public class UserManager {
     }
 
     public User userUpdate(User newUser) {
-        if (users.get(newUser.getId()) == null || !vaidate(newUser)) {
+        if (users.get(newUser.getId()) == null || !validate(newUser)) {
             log.info("Неверный формат пользователя");
             throw new ValidationException("Неверный формат пользователя");
         }
@@ -54,8 +54,17 @@ public class UserManager {
         return users.values();
     }
 
-    private boolean vaidate(User user) {
-        return user.getEmail() != null && user.getLogin() != null && user.getBirthday() != null && user.getEmail().contains("@") && !user.getLogin().isEmpty() && (user.getLogin().indexOf(' ') == -1) && user.getBirthday().isBefore(LocalDate.now());
+    private boolean validate(User user) {
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            throw new ValidationException("Email должен содержать '@'");
+        }
+        if (user.getLogin() == null || user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+            throw new ValidationException("Логин не должен быть пустым и не должен содержать пробелы");
+        }
+        if (user.getBirthday() == null || !user.getBirthday().isBefore(LocalDate.now())) {
+            throw new ValidationException("Дата рождения должна быть в прошлом");
+        }
+        return true;
     }
 
     private int getLastId() {

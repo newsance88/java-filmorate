@@ -2,15 +2,17 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.Email;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
+@RequiredArgsConstructor
 public class User {
-    int id;
+    private int id;
     @Email
-    String email;
-    String login;
-    String name;
-    LocalDate birthday;
+    private String email;
+    private String login;
+    private String name;
+    private LocalDate birthday;
 }

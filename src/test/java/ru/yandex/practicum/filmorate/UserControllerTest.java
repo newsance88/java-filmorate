@@ -1,30 +1,25 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.manager.UserManager;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class UserControllerTest {
-    @Autowired
-    private UserController userController;
-    @Autowired
-    private UserManager userManager;
 
-//    @BeforeEach
-//    void beforeEach() {
-//        userManager = new UserManager();
-//        userController = new UserController();
-//    }
+    private UserController userController;
+
+    @BeforeEach
+    void beforeEach() {
+        userController = new UserController();
+    }
 
     @Test
     void createUserTest() {
@@ -45,7 +40,8 @@ public class UserControllerTest {
         user.setName("Test User");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Email должен содержать '@'", exception.getMessage());
     }
 
     @Test
@@ -56,7 +52,8 @@ public class UserControllerTest {
         user.setName("Test User");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Логин не должен быть пустым и не должен содержать пробелы", exception.getMessage());
     }
 
     @Test
@@ -67,7 +64,8 @@ public class UserControllerTest {
         user.setName("Test User");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Логин не должен быть пустым и не должен содержать пробелы", exception.getMessage());
     }
 
     @Test
@@ -78,6 +76,7 @@ public class UserControllerTest {
         user.setName("Test User");
         user.setBirthday(LocalDate.now().plusDays(1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+        ValidationException exception = assertThrows(ValidationException.class, () -> userController.createUser(user));
+        assertEquals("Дата рождения должна быть в прошлом", exception.getMessage());
     }
 }
