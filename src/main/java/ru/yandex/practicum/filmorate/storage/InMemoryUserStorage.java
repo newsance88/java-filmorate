@@ -1,7 +1,8 @@
-package ru.yandex.practicum.filmorate.manager;
+package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -12,10 +13,11 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class UserManager {
+public class InMemoryUserStorage implements UserStorage {
 
-    private Map<Integer, User> users = new HashMap<>();
+    private Map<Long, User> users = new HashMap<>();
 
+    @Override
     public User addUser(User user) {
         if (!validate(user)) {
             log.info("Неверный формат пользователя");
@@ -24,7 +26,7 @@ public class UserManager {
         if (user.getName() == null) {
             user.setName(user.getLogin());
         }
-        int newId = getLastId() + 1;
+        Long newId = getLastId() + 1;
         user.setId(newId);
         users.put(newId, user);
         log.info("Пользователь создан, id={}", user.getId());
@@ -32,8 +34,23 @@ public class UserManager {
         return user;
     }
 
+    @Override
+    public User userById(Long id) throws ResourceNotFoundException {
+        User user = users.get(id);
+        if (user == null) {
+            log.info("Неверный идентификатор пользователя");
+            throw new ResourceNotFoundException("Данный id не найден");
+        }
+        return user;
+    }
+
+    @Override
     public User userUpdate(User newUser) {
-        if (users.get(newUser.getId()) == null || !validate(newUser)) {
+        if (users.get(newUser.getId()) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
+        if (!validate(newUser)) {
             log.info("Неверный формат пользователя");
             throw new ValidationException("Неверный формат пользователя");
         }
@@ -50,6 +67,7 @@ public class UserManager {
         return newUser;
     }
 
+    @Override
     public Collection<User> getAllUsers() {
         return users.values();
     }
@@ -67,9 +85,9 @@ public class UserManager {
         return true;
     }
 
-    private int getLastId() {
+    private Long getLastId() {
         return users.keySet().stream()
-                .max(Integer::compareTo)
-                .orElse(0);
+                .max(Long::compareTo)
+                .orElse(0L);
     }
 }
