@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage userStorage;
 
-
     public User addFriend(Long userId, Long friendId) throws ResourceNotFoundException {
         User user = userStorage.userById(userId);
         User friendUser = userStorage.userById(friendId);
