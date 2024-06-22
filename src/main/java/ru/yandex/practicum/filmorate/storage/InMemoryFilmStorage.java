@@ -1,7 +1,8 @@
-package ru.yandex.practicum.filmorate.manager;
+package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -12,17 +13,18 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class FilmManager {
+public class InMemoryFilmStorage implements FilmStorage {
     private static final LocalDate MIN_RELEASE = LocalDate.of(1895, 12, 28);
 
-    private Map<Integer, Film> films = new HashMap<>();
+    private Map<Long, Film> films = new HashMap<>();
 
+    @Override
     public Film addFilm(Film film) {
         if (!validate(film)) {
             log.info("Неверный формат фильма");
             throw new ValidationException("Неверный формат фильма");
         }
-        int newId = getLastId() + 1;
+        Long newId = (long) (getLastId() + 1);
         film.setId(newId);
         films.put(newId, film);
         log.info("Фильм создан, id={}", film.getId());
@@ -30,8 +32,12 @@ public class FilmManager {
         return film;
     }
 
+    @Override
     public Film filmUpdate(Film newFilm) {
-        if (films.get(newFilm.getId()) == null || !validate(newFilm)) {
+        if (films.get(newFilm.getId()) == null) {
+            throw new ResourceNotFoundException("Данный фильм не найден");
+        }
+        if (!validate(newFilm)) {
             log.info("Неверный формат фильма");
             throw new ValidationException("Неверный формат фильма");
         }
@@ -63,11 +69,22 @@ public class FilmManager {
 
 
     private int getLastId() {
-        return films.keySet().stream()
-                .max(Integer::compareTo)
-                .orElse(0);
+        return Math.toIntExact(films.keySet().stream()
+                .max(Long::compareTo)
+                .orElse(0L));
     }
 
+    @Override
+    public Film filmById(Long id) {
+        Film film = films.get(id);
+        if (film == null) {
+            log.info("Неверный идентификатор пользователя");
+            throw new ResourceNotFoundException("Данный id не найден");
+        }
+        return film;
+    }
+
+    @Override
     public Collection<Film> getAllFilms() {
         return films.values();
     }
