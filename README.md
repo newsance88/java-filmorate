@@ -1,4 +1,4 @@
 # java-filmorate
-Template repository for Filmorate project.
-![image](https://github.com/newsance88/java-filmorate/assets/120139631/3068acaf-967f-4579-94f6-ac5bfcde98ba)
+![image](https://github.com/newsance88/java-filmorate/assets/120139631/43c6629b-20cf-49a1-b72a-9c2ab05222ce)
+
 
