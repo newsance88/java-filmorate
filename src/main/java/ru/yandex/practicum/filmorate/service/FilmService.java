@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -18,26 +19,23 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
-    public Film addLike(Long filmId, Long userId) throws ResourceNotFoundException {
-        Film film = filmStorage.filmById(filmId);
+    public Optional<Film> addLike(Long filmId, Long userId) throws ResourceNotFoundException {
+        Optional<Film> film = filmStorage.filmById(filmId);
         userStorage.userById(userId);
-        film.getLikes().add(userId);
+        filmStorage.addLike(filmId,userId);
         log.info("Лайк добавлен, id фильма={} , id пользователя={}", filmId, userId);
         return film;
     }
 
     public void removeLike(Long filmId, Long userId) throws ResourceNotFoundException {
-        Film film = filmStorage.filmById(filmId);
+        Optional<Film> film = filmStorage.filmById(filmId);
         userStorage.userById(userId);
-        film.getLikes().remove(userId);
+        filmStorage.removeLike(filmId,userId);
         log.info("Лайк удален, id фильма={} , id пользователя={}", filmId, userId);
     }
 
     public List<Film> getPopularFilms(int count) {
-        return filmStorage.getAllFilms().stream()
-                .sorted((f0, f1) -> f1.getLikes().size() - f0.getLikes().size())
-                .limit(count)
-                .toList();
+        return filmStorage.getPopularFilms(count);
     }
 
     public Film addFilm(Film film) {
@@ -48,7 +46,7 @@ public class FilmService {
         return filmStorage.filmUpdate(newFilm);
     }
 
-    public Film filmById(Long id) {
+    public Optional<Film> filmById(Long id) {
         return filmStorage.filmById(id);
     }
 

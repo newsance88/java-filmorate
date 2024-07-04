@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -18,7 +19,7 @@ public class FilmController {
     private final FilmService filmService;
 
     @PutMapping("/{id}/like/{userId}")
-    public Film addLike(@PathVariable Long id, @PathVariable Long userId) {
+    public Optional<Film> addLike(@PathVariable Long id, @PathVariable Long userId) {
         return filmService.addLike(id, userId);
     }
 
@@ -33,7 +34,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film filmById(@PathVariable Long id) {
+    public Optional<Film> filmById(@PathVariable Long id) {
         return filmService.filmById(id);
     }
 
