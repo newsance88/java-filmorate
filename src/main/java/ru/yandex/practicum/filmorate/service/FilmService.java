@@ -18,7 +18,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 public class FilmService {
-    private final static LocalDate MINIMUM_DATE = LocalDate.of(1895, 12, 28);
+    private static final LocalDate MINIMUM_DATE = LocalDate.of(1895, 12, 28);
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
