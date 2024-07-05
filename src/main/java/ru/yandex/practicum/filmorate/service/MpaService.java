@@ -11,6 +11,7 @@ import java.util.List;
 @Service
 public class MpaService {
     private final MpaStorage mpaStorage;
+
     public List<Mpa> getAllMpa() {
         return mpaStorage.getAllMpa();
     }

@@ -17,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MpaController {
     private final MpaService mpaService;
+
     @GetMapping
     public List<Mpa> getAllMpa() {
         log.info("Получение всех MPA");

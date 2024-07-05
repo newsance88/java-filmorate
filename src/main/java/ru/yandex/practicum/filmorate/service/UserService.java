@@ -9,9 +9,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -20,11 +17,11 @@ public class UserService {
     private final UserStorage userStorage;
 
     public User addFriend(Long userId, Long friendId) throws ResourceNotFoundException {
-        return userStorage.addFriend(userId,friendId);
+        return userStorage.addFriend(userId, friendId);
     }
 
     public User removeFriend(Long userId, Long friendId) throws ResourceNotFoundException {
-        return userStorage.removeFriend(userId,friendId);
+        return userStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getFriends(Long id) throws ResourceNotFoundException {
@@ -32,7 +29,7 @@ public class UserService {
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) throws ResourceNotFoundException {
-        return userStorage.getCommonFriends(userId,otherId);
+        return userStorage.getCommonFriends(userId, otherId);
     }
 
     public User createUser(User user) {

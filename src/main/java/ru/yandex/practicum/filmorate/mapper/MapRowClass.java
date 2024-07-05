@@ -17,11 +17,12 @@ public class MapRowClass {
         film.setReleaseDate(rs.getDate("release_date").toLocalDate());
         film.setDuration(rs.getInt("duration"));
         Mpa mpa = new Mpa();
-        mpa.setId(rs.getInt("mpa_id"));
+        mpa.setId(rs.getLong("mpa_id"));
         mpa.setName(rs.getString("mpa_name"));
         film.setMpa(mpa);
         return film;
     }
+
     public static User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {
         User user = new User();
         user.setId(rs.getLong("id"));
@@ -31,12 +32,14 @@ public class MapRowClass {
         user.setBirthday(rs.getDate("birthday").toLocalDate());
         return user;
     }
+
     public static Genre mapRowToGenre(ResultSet rs, int rowNum) throws SQLException {
         Genre genre = new Genre();
         genre.setId(rs.getLong("id"));
         genre.setName(rs.getString("name"));
         return genre;
     }
+
     public static Mpa mapRowToMpa(ResultSet rs, int rowNum) throws SQLException {
         Mpa mpa = new Mpa();
         mpa.setId(rs.getLong("id"));

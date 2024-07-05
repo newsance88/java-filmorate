@@ -6,16 +6,18 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class GenreService {
     private final GenreStorage genreStorage;
+
     public List<Genre> getAllGenres() {
         return genreStorage.getAllGenre();
     }
 
-    public Genre getGenreById(Long id) {
+    public Optional<Genre> getGenreById(Long id) {
         return genreStorage.getGenreById(id);
     }
 }

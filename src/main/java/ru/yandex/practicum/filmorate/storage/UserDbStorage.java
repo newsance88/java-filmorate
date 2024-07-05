@@ -8,7 +8,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.ResourceNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.MapRowClass;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -70,6 +69,7 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT * FROM users";
         return jdbcTemplate.query(sql, MapRowClass::mapRowToUser);
     }
+
     public User addFriend(Long userId, Long friendId) throws ResourceNotFoundException {
         User user = userById(userId);
         User friendUser = userById(friendId);
@@ -82,6 +82,7 @@ public class UserDbStorage implements UserStorage {
         log.info("Друг добавлен, id={} , id Друга={}", user.getId(), friendUser.getId());
         return user;
     }
+
     @Override
     public User removeFriend(Long userId, Long friendId) throws ResourceNotFoundException {
         User user = userById(userId);
@@ -95,6 +96,7 @@ public class UserDbStorage implements UserStorage {
         log.info("Друг удален, id={} , id Друга={}", user.getId(), friendUser.getId());
         return user;
     }
+
     @Override
     public List<User> getFriends(Long id) throws ResourceNotFoundException {
         userById(id);
@@ -103,6 +105,7 @@ public class UserDbStorage implements UserStorage {
                 "WHERE f.request_user_id = ?";
         return jdbcTemplate.query(sql, MapRowClass::mapRowToUser, id);
     }
+
     @Override
     public List<User> getCommonFriends(Long userId, Long otherId) throws ResourceNotFoundException {
         userById(userId);

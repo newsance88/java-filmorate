@@ -4,14 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.MapRowClass;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class MpaDbStorage implements MpaStorage{
+public class MpaDbStorage implements MpaStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
@@ -23,6 +25,10 @@ public class MpaDbStorage implements MpaStorage{
     @Override
     public Mpa getMpaById(Long id) {
         String sql = "SELECT * FROM mpa WHERE id = ?";
-        return jdbcTemplate.queryForObject(sql, MapRowClass::mapRowToMpa, id);
+        try {
+            return jdbcTemplate.queryForObject(sql, MapRowClass::mapRowToMpa, id);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Id не существует:" + id);
+        }
     }
 }
