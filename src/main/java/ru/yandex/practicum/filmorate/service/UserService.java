@@ -16,19 +16,31 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
 
-    public User addFriend(Long userId, Long friendId) throws ResourceNotFoundException {
+    public User addFriend(Long userId, Long friendId) {
         return userStorage.addFriend(userId, friendId);
     }
 
-    public User removeFriend(Long userId, Long friendId) throws ResourceNotFoundException {
+    public User removeFriend(Long userId, Long friendId) {
         return userStorage.removeFriend(userId, friendId);
     }
 
-    public List<User> getFriends(Long id) throws ResourceNotFoundException {
+    public List<User> getFriends(Long id) {
+        if (userStorage.userById(id) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
         return userStorage.getFriends(id);
     }
 
-    public List<User> getCommonFriends(Long userId, Long otherId) throws ResourceNotFoundException {
+    public List<User> getCommonFriends(Long userId, Long otherId) {
+        if (userStorage.userById(userId) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
+        if (userStorage.userById(otherId) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
         return userStorage.getCommonFriends(userId, otherId);
     }
 
@@ -37,6 +49,10 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        if (userStorage.userById(user.getId()) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
         return userStorage.userUpdate(user);
     }
 

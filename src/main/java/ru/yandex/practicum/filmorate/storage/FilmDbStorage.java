@@ -72,6 +72,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ? WHERE id = ?";
         jdbcTemplate.update(sql, newFilm.getName(), newFilm.getDescription(), Date.valueOf(newFilm.getReleaseDate()), newFilm.getDuration(), newFilm.getMpa().getId(), newFilm.getId());
+        removeGenresFromFilm(newFilm.getId());
         if (newFilm.getGenres() != null && !newFilm.getGenres().isEmpty()) {
             List<Long> genreIds = newFilm.getGenres().stream().map(Genre::getId).toList();
             addGenre(newFilm.getId(), genreIds);
@@ -95,16 +96,13 @@ public class FilmDbStorage implements FilmStorage {
                 "where f.id = ?" +
                 "group by f.id, m.id";
 
-        try {
-            Film film = jdbcTemplate.queryForObject(sqlQuery, MapRowClass::mapRowToFilm, id);
-            if (film != null && film.getGenres() == null) {
-                film.setGenres(new HashSet<>());
-            }
-            setGenresToFilm(film);
-            return Optional.ofNullable(film);
-        } catch (Exception e) {
-            return Optional.empty();
+        Film film = jdbcTemplate.queryForObject(sqlQuery, MapRowClass::mapRowToFilm, id);
+        if (film != null && film.getGenres() == null) {
+            film.setGenres(new HashSet<>());
         }
+        setGenresToFilm(film);
+        return Optional.of(film);
+
     }
 
     @Override
@@ -120,21 +118,26 @@ public class FilmDbStorage implements FilmStorage {
                 "left join likes l on f.id = l.film_id " +
                 "group by f.id, m.id";
 
-        return jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm);
+        Collection<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm);
+        for (Film film : films) {
+            if (film.getGenres() == null) {
+                film.setGenres(new HashSet<>());
+            }
+            setGenresToFilm(film);
+        }
+        return films;
     }
 
     @Override
-    public Film addLike(Long filmId, Long userId) throws ResourceNotFoundException {
+    public Optional<Film> addLike(Long filmId, Long userId) throws ResourceNotFoundException {
         Optional<Film> optionalFilm = filmById(filmId);
         if (optionalFilm.isEmpty()) {
             throw new ValidationException("Фильм не найден");
         }
         String sql = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
-        Film film = optionalFilm.get();
-        film.getLikes().add(userId);
         log.info("Лайк добавлен, id фильма={} , id пользователя={}", filmId, userId);
-        return film;
+        return optionalFilm;
     }
 
     @Override
@@ -166,12 +169,17 @@ public class FilmDbStorage implements FilmStorage {
                 "GROUP BY f.id, m.id " +
                 "ORDER BY likes DESC " +
                 "LIMIT ?";
-
-        return jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm, count);
+        List<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm, count);
+        for (Film film : films) {
+            if (film.getGenres() == null) {
+                film.setGenres(new HashSet<>());
+            }
+            setGenresToFilm(film);
+        }
+        return films;
     }
 
-    @Override
-    public void addGenre(Long filmId, List<Long> genreIds) {
+    private void addGenre(Long filmId, List<Long> genreIds) {
         String sqlQuery = "insert into film_genres (film_id, genre_id) values";
         StringBuilder values = new StringBuilder();
         for (Long genreId : genreIds) {
@@ -179,6 +187,11 @@ public class FilmDbStorage implements FilmStorage {
         }
         values.setLength(values.length() - 1);
         jdbcTemplate.update(sqlQuery + values);
+    }
+
+    private void removeGenresFromFilm(Long filmId) {
+        String sqlQuery = "DELETE FROM film_genres WHERE film_id = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
     }
 
     private void setGenresToFilm(Film film) {

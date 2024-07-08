@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,12 @@ class FilmoRateApplicationTests {
         filmStorage.filmUpdate(updatedFilm);
         Film updatedRetrievedFilm = filmStorage.filmById(1L).orElse(null);
 
+        List<Film> filmsList = (List<Film>) filmStorage.getAllFilms();
+
         assertThat(updatedRetrievedFilm).hasFieldOrPropertyWithValue("id", 1L);
+        Assertions.assertEquals(filmsList.size(),2);
+
+
     }
 
     @Test
@@ -120,7 +126,33 @@ class FilmoRateApplicationTests {
         userStorage.userUpdate(updatedUser);
         User updatedRetrievedUser = userStorage.userById(1L);
 
+        List<User> userList = (List<User>) userStorage.getAllUsers();
+
         assertThat(updatedRetrievedUser).hasFieldOrPropertyWithValue("id", 1L);
         assertThat(updatedRetrievedUser).hasFieldOrPropertyWithValue("name", "namename");
+
+        Assertions.assertEquals(userList.size(),2);
+
+
+
+        Film film1 = new Film();
+        film1.setName("film1");
+        film1.setDescription("description");
+        film1.setDuration(70);
+        film1.setReleaseDate(LocalDate.now());
+        Mpa mpa = new Mpa();
+        mpa.setId(1);
+        mpa.setName("G");
+        film1.setMpa(mpa);
+        filmStorage.addFilm(film1);
+
+        filmStorage.addLike(film1.getId(), user1.getId());
+        System.out.println(film1.getLikes());
+
+        userStorage.addFriend(user1.getId(), user2.getId());
+
+        System.out.println(userStorage.userById(user1.getId()));
+        System.out.println(userStorage.userById(user2.getId()));
+
     }
 }

@@ -43,7 +43,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User userById(Long id) throws ResourceNotFoundException {
+    public User userById(Long id) {
         String sql = "SELECT * FROM users WHERE id = ?";
         try {
             User user = jdbcTemplate.queryForObject(sql, MapRowClass::mapRowToUser, id);
@@ -55,10 +55,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User userUpdate(User newUser) {
-        if (userById(newUser.getId()) == null) {
-            log.info("Пользователь не найден");
-            throw new ResourceNotFoundException("Пользователь не найден");
-        }
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
         jdbcTemplate.update(sql, newUser.getEmail(), newUser.getLogin(), newUser.getName(), Date.valueOf(newUser.getBirthday()), newUser.getId());
         return newUser;
@@ -70,7 +66,7 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, MapRowClass::mapRowToUser);
     }
 
-    public User addFriend(Long userId, Long friendId) throws ResourceNotFoundException {
+    public User addFriend(Long userId, Long friendId) {
         User user = userById(userId);
         User friendUser = userById(friendId);
 
@@ -84,7 +80,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User removeFriend(Long userId, Long friendId) throws ResourceNotFoundException {
+    public User removeFriend(Long userId, Long friendId) {
         User user = userById(userId);
         User friendUser = userById(friendId);
 
@@ -98,8 +94,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getFriends(Long id) throws ResourceNotFoundException {
-        userById(id);
+    public List<User> getFriends(Long id) {
         String sql = "SELECT u.* FROM users u " +
                 "JOIN friends f ON u.id = f.accept_friend_id " +
                 "WHERE f.request_user_id = ?";
@@ -107,9 +102,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getCommonFriends(Long userId, Long otherId) throws ResourceNotFoundException {
-        userById(userId);
-        userById(otherId);
+    public List<User> getCommonFriends(Long userId, Long otherId) {
         String sql = "SELECT u.* FROM users u " +
                 "JOIN friends f1 ON u.id = f1.accept_friend_id " +
                 "JOIN friends f2 ON u.id = f2.accept_friend_id " +

@@ -22,15 +22,16 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
-    public Optional<Film> addLike(Long filmId, Long userId) throws ResourceNotFoundException {
-        Optional<Film> film = filmStorage.filmById(filmId);
+    public Film addLike(Long filmId, Long userId) {
+        Film film = filmStorage.filmById(filmId)
+                .orElseThrow(() -> new ResourceNotFoundException("Фильм не найден после добавления лайка"));
         userStorage.userById(userId);
         filmStorage.addLike(filmId, userId);
         log.info("Лайк добавлен, id фильма={} , id пользователя={}", filmId, userId);
         return film;
     }
 
-    public void removeLike(Long filmId, Long userId) throws ResourceNotFoundException {
+    public void removeLike(Long filmId, Long userId) {
         Optional<Film> film = filmStorage.filmById(filmId);
         userStorage.userById(userId);
         filmStorage.removeLike(filmId, userId);
@@ -55,8 +56,9 @@ public class FilmService {
         return filmStorage.filmUpdate(newFilm);
     }
 
-    public Optional<Film> filmById(Long id) {
-        return filmStorage.filmById(id);
+    public Film filmById(Long id) {
+        return filmStorage.filmById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Фильм не найден"));
     }
 
     public Collection<Film> getAllFilms() {
