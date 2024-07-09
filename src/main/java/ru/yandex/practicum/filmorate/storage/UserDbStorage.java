@@ -16,7 +16,6 @@ import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,18 +44,21 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User userById(Long id) {
         String sql = "SELECT * FROM users WHERE id = ?";
-        try {
-            User user = jdbcTemplate.queryForObject(sql, MapRowClass::mapRowToUser, id);
-            return Optional.ofNullable(user).orElseThrow(() -> new ResourceNotFoundException("Данный id не найден"));
-        } catch (Exception e) {
-            throw new ResourceNotFoundException("Данный id не найден");
+        final List<User> users = jdbcTemplate.query(sql, MapRowClass::mapRowToUser, id);
+        if (users.size() != 1) {
+            throw new ResourceNotFoundException("user id=" + id);
         }
+        return users.get(0);
     }
 
     @Override
     public User userUpdate(User newUser) {
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
         jdbcTemplate.update(sql, newUser.getEmail(), newUser.getLogin(), newUser.getName(), Date.valueOf(newUser.getBirthday()), newUser.getId());
+        if (userById(newUser.getId()) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
         return newUser;
     }
 
@@ -98,6 +100,10 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT u.* FROM users u " +
                 "JOIN friends f ON u.id = f.accept_friend_id " +
                 "WHERE f.request_user_id = ?";
+        if (userById(id) == null) {
+            log.info("Пользователь не найден");
+            throw new ResourceNotFoundException("Пользователь не найден");
+        }
         return jdbcTemplate.query(sql, MapRowClass::mapRowToUser, id);
     }
 

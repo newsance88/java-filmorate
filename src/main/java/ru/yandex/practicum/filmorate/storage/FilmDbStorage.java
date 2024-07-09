@@ -16,6 +16,8 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -84,24 +86,20 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> filmById(Long id) {
-        String sqlQuery = "select f.*, " +
-                "m.id as mpa_id, m.name as mpa_name, " +
-                "group_concat(g.id) as genre_ids, group_concat(g.name) as genre_names, " +
-                "count(l.user_id) as likes " +
-                "from films f " +
-                "left join mpa m on f.mpa_id = m.id " +
-                "left join film_genres fg on f.id = fg.film_id " +
-                "left join genres g on fg.genre_id = g.id " +
-                "left join likes l on f.id = l.film_id " +
-                "where f.id = ?" +
-                "group by f.id, m.id";
+        String sqlQuery = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "WHERE f.id = ?";
 
-        Film film = jdbcTemplate.queryForObject(sqlQuery, MapRowClass::mapRowToFilm, id);
-        if (film != null && film.getGenres() == null) {
-            film.setGenres(new HashSet<>());
+        try {
+            Film film = jdbcTemplate.queryForObject(sqlQuery, MapRowClass::mapRowToFilm, id);
+            if (film != null) {
+                setGenresToFilm(film);
+            }
+            return Optional.ofNullable(film);
+        } catch (Exception e) {
+            return Optional.empty();
         }
-        setGenresToFilm(film);
-        return Optional.of(film);
 
     }
 
@@ -118,13 +116,14 @@ public class FilmDbStorage implements FilmStorage {
                 "left join likes l on f.id = l.film_id " +
                 "group by f.id, m.id";
 
-        Collection<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm);
-        for (Film film : films) {
-            if (film.getGenres() == null) {
-                film.setGenres(new HashSet<>());
-            }
-            setGenresToFilm(film);
-        }
+        List<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm);
+//        for (Film film : films) {
+//            if (film.getGenres() == null) {
+//                film.setGenres(new HashSet<>());
+//            }
+//            setGenresToFilm(film);
+//        }
+        setGenresToFilms(films);
         return films;
     }
 
@@ -170,12 +169,13 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes DESC " +
                 "LIMIT ?";
         List<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm, count);
-        for (Film film : films) {
-            if (film.getGenres() == null) {
-                film.setGenres(new HashSet<>());
-            }
-            setGenresToFilm(film);
-        }
+//        for (Film film : films) {
+//            if (film.getGenres() == null) {
+//                film.setGenres(new HashSet<>());
+//            }
+//            setGenresToFilm(film);
+//        }
+        setGenresToFilms(films);
         return films;
     }
 
@@ -208,4 +208,32 @@ public class FilmDbStorage implements FilmStorage {
 
         film.setGenres(new HashSet<>(genres));
     }
+
+    private void setGenresToFilms(List<Film> films) {
+        if (films.isEmpty()) {
+            return;
+        }
+
+        Map<Long, Film> filmMap = films.stream().collect(Collectors.toMap(Film::getId, Function.identity()));
+        String filmIds = films.stream().map(film -> String.valueOf(film.getId())).collect(Collectors.joining(","));
+
+        String sqlQuery = "SELECT fg.film_id, g.id, g.name " +
+                "FROM film_genres fg " +
+                "INNER JOIN genres g ON fg.genre_id = g.id " +
+                "WHERE fg.film_id IN (" + filmIds + ")";
+
+        jdbcTemplate.query(sqlQuery, rs -> {
+            Long filmId = rs.getLong("film_id");
+            Long genreId = rs.getLong("id");
+            String genreName = rs.getString("name");
+            Genre genre = new Genre();
+            genre.setId(genreId);
+            genre.setName(genreName);
+            Film film = filmMap.get(filmId);
+            if (film != null) {
+                film.getGenres().add(genre);
+            }
+        });
+    }
+
 }
