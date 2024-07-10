@@ -117,12 +117,6 @@ public class FilmDbStorage implements FilmStorage {
                 "group by f.id, m.id";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm);
-//        for (Film film : films) {
-//            if (film.getGenres() == null) {
-//                film.setGenres(new HashSet<>());
-//            }
-//            setGenresToFilm(film);
-//        }
         setGenresToFilms(films);
         return films;
     }
@@ -169,12 +163,6 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes DESC " +
                 "LIMIT ?";
         List<Film> films = jdbcTemplate.query(sqlQuery, MapRowClass::mapRowToFilm, count);
-//        for (Film film : films) {
-//            if (film.getGenres() == null) {
-//                film.setGenres(new HashSet<>());
-//            }
-//            setGenresToFilm(film);
-//        }
         setGenresToFilms(films);
         return films;
     }
