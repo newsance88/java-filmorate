@@ -4,52 +4,61 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
 @AllArgsConstructor
 public class FilmService {
+    private static final LocalDate MINIMUM_DATE = LocalDate.of(1895, 12, 28);
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
-    public Film addLike(Long filmId, Long userId) throws ResourceNotFoundException {
-        Film film = filmStorage.filmById(filmId);
+    public Film addLike(Long filmId, Long userId) {
+        Film film = filmStorage.filmById(filmId)
+                .orElseThrow(() -> new ResourceNotFoundException("Фильм не найден после добавления лайка"));
         userStorage.userById(userId);
-        film.getLikes().add(userId);
+        filmStorage.addLike(filmId, userId);
         log.info("Лайк добавлен, id фильма={} , id пользователя={}", filmId, userId);
         return film;
     }
 
-    public void removeLike(Long filmId, Long userId) throws ResourceNotFoundException {
-        Film film = filmStorage.filmById(filmId);
+    public void removeLike(Long filmId, Long userId) {
+        Optional<Film> film = filmStorage.filmById(filmId);
         userStorage.userById(userId);
-        film.getLikes().remove(userId);
+        filmStorage.removeLike(filmId, userId);
         log.info("Лайк удален, id фильма={} , id пользователя={}", filmId, userId);
     }
 
     public List<Film> getPopularFilms(int count) {
-        return filmStorage.getAllFilms().stream()
-                .sorted((f0, f1) -> f1.getLikes().size() - f0.getLikes().size())
-                .limit(count)
-                .toList();
+        return filmStorage.getPopularFilms(count);
     }
 
     public Film addFilm(Film film) {
+        if (film.getReleaseDate().isBefore(MINIMUM_DATE)) {
+            throw new ValidationException("Релиз должен быть похже 28 декабря 1895 года");
+        }
         return filmStorage.addFilm(film);
     }
 
     public Film filmUpdate(Film newFilm) {
+        if (newFilm.getReleaseDate().isBefore(MINIMUM_DATE)) {
+            throw new ValidationException("Релиз должен быть похже 28 декабря 1895 года");
+        }
         return filmStorage.filmUpdate(newFilm);
     }
 
     public Film filmById(Long id) {
-        return filmStorage.filmById(id);
+        return filmStorage.filmById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Фильм не найден"));
     }
 
     public Collection<Film> getAllFilms() {

@@ -21,5 +21,8 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность должна быть положительной")
     private int duration;
+    private Set<Genre> genres = new HashSet<>();
+    @NotNull(message = "Рейтинг не может быть пустым")
+    private Mpa mpa;
     private Set<Long> likes = new HashSet<>();
 }
